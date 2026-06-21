@@ -30,3 +30,8 @@ hermes.token
 Thumbs.db
 dist/
 /frontend/dist/
+
+# Skeleton and patches
+/kanban-skeleton/
+*.patch.json5
+composer.phar
