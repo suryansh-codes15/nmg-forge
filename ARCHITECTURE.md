@@ -31,7 +31,7 @@ graph TD
   - Inspects workspace code, edits files, and creates routes/controllers.
   - Runs local compiler tests, migrations, and npm scripts.
   - Interfaces directly with the codebase via tool usage.
-- **Model:** `Groq llama-3.3-70b-versatile` for extremely low latency code compilation and editing.
+- **Model:** `Google Gemini 2.5-flash` (via OpenAI compatibility) for reliable tool utilization and schema conformance during file editing.
 
 ---
 
@@ -53,4 +53,4 @@ Everything is wired to a private Slack workspace (`NMG Slack`):
 | Layer | Provider | Model | Rationale |
 | :--- | :--- | :--- | :--- |
 | **Planning & Cron** | Google AI Studio | `gemini-2.5-flash` | Outstanding context length, zero-latency parsing, and generous free limits for planning loops. |
-| **Coding & Terminal** | Groq | `llama-3.3-70b-versatile` | Ultra-fast token generation and highly specialized instruction following for code-modification tasks. |
+| **Coding & Terminal** | Google Gemini (OpenAI compat) | `gemini-2.5-flash` | Generous context length and robust JSON/tool schemas to ensure reliable file operations and coding loops. |
