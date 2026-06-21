@@ -13,6 +13,7 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
 
   const cardTagIds = new Set((card.tags || []).map((t) => t.id));
   const cardMemberIds = new Set((card.members || []).map((m) => m.id));
+  const selectedCommenterId = commenterId || members[0]?.id?.toString() || "";
 
   const loadActivities = useCallback(async () => {
     try {
@@ -24,14 +25,20 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
   }, [card.id]);
 
   useEffect(() => {
-    loadActivities();
-  }, [loadActivities, card.members, card.tags, card.title, card.description, card.due_date]);
+    let cancelled = false;
 
-  useEffect(() => {
-    if (members.length > 0 && !commenterId) {
-      setCommenterId(members[0].id.toString());
-    }
-  }, [members, commenterId]);
+    api.getActivities(card.id)
+      .then((data) => {
+        if (!cancelled) setActivities(data);
+      })
+      .catch((e) => {
+        console.error("Failed to load activities", e);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [card.id, card.members, card.tags, card.title, card.description, card.due_date]);
 
   function save() {
     onUpdate(card.id, { title, description, due_date: dueDate || null });
@@ -39,9 +46,9 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
 
   async function handleAddComment(e) {
     e.preventDefault();
-    if (!commenterId || !newComment.trim()) return;
+    if (!selectedCommenterId || !newComment.trim()) return;
     try {
-      await api.postComment(card.id, Number(commenterId), newComment.trim());
+      await api.postComment(card.id, Number(selectedCommenterId), newComment.trim());
       setNewComment("");
       loadActivities();
     } catch (err) {
@@ -57,8 +64,13 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" style={{ width: "500px", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">x</button>
+
+        <div className="modal-heading">
+          <p className="eyebrow">Card details</p>
+          <h2>{card.title}</h2>
+        </div>
 
         <label className="field-label">Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={save} />
@@ -104,11 +116,11 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
 
         <div className="modal-divider" />
 
-        <label className="field-label" style={{ marginTop: "5px" }}>Activity & Comments</label>
+        <label className="field-label compact-label">Activity & Comments</label>
         
         <form onSubmit={handleAddComment} className="comment-form">
           <div className="comment-form-row">
-            <select value={commenterId} onChange={(e) => setCommenterId(e.target.value)}>
+            <select value={selectedCommenterId} onChange={(e) => setCommenterId(e.target.value)}>
               <option value="" disabled>Select member...</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
@@ -118,17 +130,17 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
               placeholder="Write a comment..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              style={{ marginTop: 0 }}
+              className="comment-input"
             />
           </div>
-          <button type="submit" className="comment-submit-btn" disabled={!newComment.trim() || !commenterId}>
+          <button type="submit" className="comment-submit-btn" disabled={!newComment.trim() || !selectedCommenterId}>
             Comment
           </button>
         </form>
 
         <div className="activities-section">
           {activities.length === 0 ? (
-            <div style={{ fontSize: "11px", color: "#666", fontStyle: "italic", textAlign: "center", padding: "10px" }}>
+            <div className="empty-activity">
               No comments or activity yet.
             </div>
           ) : (
@@ -146,7 +158,7 @@ export default function CardModal({ card, members, allTags, onClose, onUpdate, o
                     </>
                   ) : (
                     <span>
-                      <strong>{act.member ? act.member.name : "System"}</strong> {act.content} <span style={{ color: "#555", fontSize: "10px", marginLeft: "6px" }}>{formatTime(act.created_at)}</span>
+                      <strong>{act.member ? act.member.name : "System"}</strong> {act.content} <span className="activity-time">{formatTime(act.created_at)}</span>
                     </span>
                   )}
                 </div>
