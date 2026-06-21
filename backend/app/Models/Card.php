@@ -28,4 +28,9 @@ class Card extends Model
     {
         return $this->belongsToMany(Member::class, 'card_member');
     }
+
+    public function activities(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CardActivity::class)->orderBy('created_at', 'desc');
+    }
 }

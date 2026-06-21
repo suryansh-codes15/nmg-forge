@@ -24,6 +24,10 @@ Route::put('/cards/{card}', [CardController::class, 'update']);
 Route::patch('/cards/{card}/move', [CardController::class, 'move']);
 Route::delete('/cards/{card}', [CardController::class, 'destroy']);
 
+// Comments & Activities
+Route::get('/cards/{card}/activities', [\App\Http\Controllers\Api\CardActivityController::class, 'index']);
+Route::post('/cards/{card}/comments', [\App\Http\Controllers\Api\CardActivityController::class, 'storeComment']);
+
 // Card <-> Tag
 Route::post('/cards/{card}/tags', [CardController::class, 'attachTag']);
 Route::delete('/cards/{card}/tags/{tagId}', [CardController::class, 'detachTag']);
